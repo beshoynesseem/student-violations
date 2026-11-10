@@ -1,0 +1,37 @@
+name: Build 32-bit EXE
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python 32-bit
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          architecture: 'x86'
+
+      - name: Check Python is 32-bit
+        run: |
+          python --version
+          python -c "import struct; print('BITS:', struct.calcsize('P')*8)"
+
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pyinstaller openpyxl
+
+      - name: Build EXE 32-bit
+        run: |
+          python -m PyInstaller --onefile --windowed --name "StudentViolations_x86" --clean --noconfirm --hidden-import=openpyxl student_violations.py
+
+      - name: Upload EXE
+        uses: actions/upload-artifact@v4
+        with:
+          name: StudentViolations_x86-exe
+          path: dist/StudentViolations_x86.exe
